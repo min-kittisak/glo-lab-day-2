@@ -1,9 +1,15 @@
 using IdentityService.Api.ExceptionHandlers;
 using IdentityService.Api.Middlewares;
 using IdentityService.Application;
+using IdentityService.Application.Common.Authentication;
+using IdentityService.Application.Features.Authentication;
 using IdentityService.Infrastructure;
+using IdentityService.Infrastructure.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +29,12 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddProblemDetails();
 
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+
+builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
+builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddApplication();
@@ -30,6 +42,29 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHealthChecks();
+
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+    ?? throw new InvalidOperationException("ไม่พบการตั้งค่า JWT");
+
+builder.Services.AddAuthentication(
+        JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters =
+                new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+        });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -70,5 +105,11 @@ app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
 
 app.MapControllers();
+
+//สำคัญมาก
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.Run();
