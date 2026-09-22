@@ -14,7 +14,8 @@ namespace IdentityService.Infrastructure.Mappings
                 user.EmailAddress,
                 user.DepartmentCode,
                 user.IsActive,
-                user.CreatedAt);
+                user.CreatedAt,
+                user.PasswordHash);
         }
 
         public static PersistenceUser ToPersistence(DomainUser user)
@@ -27,7 +28,8 @@ namespace IdentityService.Infrastructure.Mappings
                 EmailAddress = user.EmailAddress,
                 DepartmentCode = user.DepartmentCode,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                PasswordHash = user.PasswordHash
             };
         }
 
@@ -40,6 +42,7 @@ namespace IdentityService.Infrastructure.Mappings
             destination.EmailAddress = source.EmailAddress;
             destination.DepartmentCode = source.DepartmentCode;
             destination.IsActive = source.IsActive;
+            destination.PasswordHash = source.PasswordHash;
         }
     }
 }
