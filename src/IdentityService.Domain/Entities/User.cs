@@ -16,6 +16,8 @@
 
         public DateTime CreatedAt { get; private set; }
 
+        public string PasswordHash { get; private set; } = string.Empty;
+
         private User()
         {
         }
@@ -42,7 +44,8 @@
             string emailAddress,
             string? departmentCode,
             bool isActive,
-            DateTime createdAt)
+            DateTime createdAt,
+            string passwordHash)
         {
             return new User
             {
@@ -52,7 +55,8 @@
                 EmailAddress = emailAddress,
                 DepartmentCode = departmentCode,
                 IsActive = isActive,
-                CreatedAt = createdAt
+                CreatedAt = createdAt,
+                PasswordHash = passwordHash
             };
         }
 
@@ -68,6 +72,11 @@
             EmailAddress = emailAddress;
             DepartmentCode = departmentCode;
             IsActive = isActive;
+        }
+
+        public void SetPasswordHash(string passwordHash)
+        {
+            PasswordHash = passwordHash;
         }
     }
 }
