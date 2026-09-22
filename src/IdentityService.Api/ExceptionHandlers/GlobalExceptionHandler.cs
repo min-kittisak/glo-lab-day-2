@@ -20,9 +20,6 @@ namespace IdentityService.Api.ExceptionHandlers
             Exception exception,
             CancellationToken cancellationToken)
         {
-            // ===== [แก้จุดที่ 1] =====
-            // เดิมคุณเอา ValidationException เข้า switch
-            // ให้แยกออกมาก่อน เพื่อไม่ให้ Errors หายตอน serialize
             if (exception is ValidationException validationException)
             {
                 var validationProblem =
@@ -34,9 +31,6 @@ namespace IdentityService.Api.ExceptionHandlers
                 validationProblem.Extensions["traceId"] =
                     httpContext.TraceIdentifier;
 
-                // ===== [แก้จุดที่ 2] =====
-                // เดิมอ่านจาก Response.Headers
-                // เปลี่ยนมาอ่านจาก HttpContext.Items
                 if (httpContext.Items.TryGetValue(
                         "CorrelationId",
                         out var correlationId))
@@ -55,15 +49,8 @@ namespace IdentityService.Api.ExceptionHandlers
                 return true;
             }
 
-
-            // ===== ตรง switch นี้เอา ValidationException ออก =====
             var problemDetails = exception switch
             {
-                // ลบบล็อกนี้ออก
-                /*
-                ValidationException validationException =>
-                    CreateValidationProblem(validationException),
-                */
 
                 NotFoundException =>
                     new ProblemDetails
@@ -97,11 +84,6 @@ namespace IdentityService.Api.ExceptionHandlers
             problemDetails.Extensions["traceId"] =
                 httpContext.TraceIdentifier;
 
-            // ===== [แก้จุดที่ 2 เช่นกัน] =====
-            // เดิม:
-            // problemDetails.Extensions["correlationId"] =
-            //     httpContext.Response.Headers["X-Correlation-ID"].ToString();
-
             if (httpContext.Items.TryGetValue(
                     "CorrelationId",
                     out var correlationIdValue))
@@ -131,12 +113,6 @@ namespace IdentityService.Api.ExceptionHandlers
             return true;
         }
 
-        // ===== [แก้จุดที่ 3] =====
-        // เดิมเป็น:
-        //
-        // private static ProblemDetails CreateValidationProblem(...)
-        //
-        // เปลี่ยน return type เป็น ValidationProblemDetails
         private static ValidationProblemDetails CreateValidationProblem(
             ValidationException exception)
         {
