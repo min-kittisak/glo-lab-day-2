@@ -4,19 +4,19 @@ using System.Collections.Generic;
 namespace IdentityService.Infrastructure.Persistence.Models;
 
 /// <summary>
-/// Training-only user directory for Identity Workshop
+/// ตารางผู้ใช้ตัวอย่างสำหรับ Workshop
 /// </summary>
 public partial class User
 {
     /// <summary>
-    /// Training user identifier
+    /// รหัสผู้ใช้สำหรับชุด Workshop
     /// </summary>
     public Guid UserId { get; set; }
 
     public string Username { get; set; } = null!;
 
     /// <summary>
-    /// Display name used for Lab 8/9 search exercises
+    /// ชื่อแสดงผลสำหรับแบบฝึกหัดค้นหาใน LAB 8 และ LAB 9
     /// </summary>
     public string DisplayName { get; set; } = null!;
 
@@ -27,4 +27,9 @@ public partial class User
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// รหัสผ่านแบบเข้ารหัส bcrypt สำหรับผู้ใช้ตัวอย่างของ Workshop
+    /// </summary>
+    public string PasswordHash { get; set; } = null!;
 }

@@ -1,4 +1,6 @@
-﻿using IdentityService.Infrastructure.Persistence.Models;
+﻿using System;
+using System.Collections.Generic;
+using IdentityService.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace IdentityService.Infrastructure.Persistence.Context;
@@ -20,13 +22,13 @@ public partial class IdentityServiceDbContext : DbContext
         {
             entity.HasKey(e => e.UserId).HasName("users_pkey");
 
-            entity.ToTable("users", "workshop", tb => tb.HasComment("Training-only user directory for Identity Workshop"));
+            entity.ToTable("users", "workshop", tb => tb.HasComment("ตารางผู้ใช้ตัวอย่างสำหรับ Workshop"));
 
             entity.HasIndex(e => e.Username, "uq_workshop_users_username").IsUnique();
 
             entity.Property(e => e.UserId)
                 .HasDefaultValueSql("gen_random_uuid()")
-                .HasComment("Training user identifier")
+                .HasComment("รหัสผู้ใช้สำหรับชุด Workshop")
                 .HasColumnName("user_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
@@ -36,7 +38,7 @@ public partial class IdentityServiceDbContext : DbContext
                 .HasColumnName("department_code");
             entity.Property(e => e.DisplayName)
                 .HasMaxLength(200)
-                .HasComment("Display name used for Lab 8/9 search exercises")
+                .HasComment("ชื่อแสดงผลสำหรับแบบฝึกหัดค้นหาใน LAB 8 และ LAB 9")
                 .HasColumnName("display_name");
             entity.Property(e => e.EmailAddress)
                 .HasMaxLength(255)
@@ -44,6 +46,11 @@ public partial class IdentityServiceDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("'$2a$10$HN1PxLf/Es1Df9n/LTVLAezoFi7GttOr4LeZg3bjPXFKkJcySd3Wy'::character varying")
+                .HasComment("รหัสผ่านแบบเข้ารหัส bcrypt สำหรับผู้ใช้ตัวอย่างของ Workshop")
+                .HasColumnName("password_hash");
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
                 .HasColumnName("username");
