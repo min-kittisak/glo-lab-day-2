@@ -68,6 +68,15 @@ namespace IdentityService.Api.ExceptionHandlers
                         Detail = exception.Message
                     },
 
+
+                UnauthorizedException =>
+                    new ProblemDetails
+                    {
+                        Status = StatusCodes.Status401Unauthorized,
+                        Title = "ไม่สามารถเข้าสู่ระบบได้",
+                        Detail = exception.Message
+                    },
+
                 _ =>
                     new ProblemDetails
                     {
