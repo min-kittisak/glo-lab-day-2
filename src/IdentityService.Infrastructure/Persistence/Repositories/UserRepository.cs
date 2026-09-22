@@ -252,8 +252,10 @@ namespace IdentityService.Infrastructure.Persistence.Repositories
                 _ => usersQuery.OrderBy(x => x.Username)
             };
 
+            var pageIndex = (query.Page - 1) < 0 ? 0 : query.Page;
+
             var users = await usersQuery
-                .Skip((query.Page - 1) * query.PageSize)
+                .Skip(pageIndex * query.PageSize)
                 .Take(query.PageSize)
                 .ToListAsync(cancellationToken);
 

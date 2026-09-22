@@ -20,10 +20,50 @@ namespace IdentityService.Api.ExceptionHandlers
             Exception exception,
             CancellationToken cancellationToken)
         {
+            // ===== [แก้จุดที่ 1] =====
+            // เดิมคุณเอา ValidationException เข้า switch
+            // ให้แยกออกมาก่อน เพื่อไม่ให้ Errors หายตอน serialize
+            if (exception is ValidationException validationException)
+            {
+                var validationProblem =
+                    CreateValidationProblem(validationException);
+
+                validationProblem.Instance =
+                    httpContext.Request.Path;
+
+                validationProblem.Extensions["traceId"] =
+                    httpContext.TraceIdentifier;
+
+                // ===== [แก้จุดที่ 2] =====
+                // เดิมอ่านจาก Response.Headers
+                // เปลี่ยนมาอ่านจาก HttpContext.Items
+                if (httpContext.Items.TryGetValue(
+                        "CorrelationId",
+                        out var correlationId))
+                {
+                    validationProblem.Extensions["correlationId"] =
+                        correlationId?.ToString();
+                }
+
+                httpContext.Response.StatusCode =
+                    StatusCodes.Status400BadRequest;
+
+                await httpContext.Response.WriteAsJsonAsync(
+                    validationProblem,
+                    cancellationToken);
+
+                return true;
+            }
+
+
+            // ===== ตรง switch นี้เอา ValidationException ออก =====
             var problemDetails = exception switch
             {
+                // ลบบล็อกนี้ออก
+                /*
                 ValidationException validationException =>
                     CreateValidationProblem(validationException),
+                */
 
                 NotFoundException =>
                     new ProblemDetails
@@ -46,14 +86,29 @@ namespace IdentityService.Api.ExceptionHandlers
                     {
                         Status = StatusCodes.Status500InternalServerError,
                         Title = "เกิดข้อผิดพลาดภายในระบบ",
-                        Detail = "ระบบไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง"
+                        Detail =
+                            "ระบบไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง"
                     }
             };
 
-            problemDetails.Instance = httpContext.Request.Path;
+            problemDetails.Instance =
+                httpContext.Request.Path;
 
-            problemDetails.Extensions["traceId"] =  httpContext.TraceIdentifier;
-            problemDetails.Extensions["correlationId"] = httpContext.Response.Headers["X-Correlation-ID"].ToString();
+            problemDetails.Extensions["traceId"] =
+                httpContext.TraceIdentifier;
+
+            // ===== [แก้จุดที่ 2 เช่นกัน] =====
+            // เดิม:
+            // problemDetails.Extensions["correlationId"] =
+            //     httpContext.Response.Headers["X-Correlation-ID"].ToString();
+
+            if (httpContext.Items.TryGetValue(
+                    "CorrelationId",
+                    out var correlationIdValue))
+            {
+                problemDetails.Extensions["correlationId"] =
+                    correlationIdValue?.ToString();
+            }
 
             if (exception is not ValidationException &&
                 exception is not NotFoundException &&
@@ -76,7 +131,13 @@ namespace IdentityService.Api.ExceptionHandlers
             return true;
         }
 
-        private static ProblemDetails CreateValidationProblem(
+        // ===== [แก้จุดที่ 3] =====
+        // เดิมเป็น:
+        //
+        // private static ProblemDetails CreateValidationProblem(...)
+        //
+        // เปลี่ยน return type เป็น ValidationProblemDetails
+        private static ValidationProblemDetails CreateValidationProblem(
             ValidationException exception)
         {
             var errors = exception.Errors
