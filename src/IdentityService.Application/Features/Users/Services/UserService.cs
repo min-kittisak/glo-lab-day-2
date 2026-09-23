@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using IdentityService.Application.Common.Authentication;
 using IdentityService.Application.Common.Exceptions;
 using IdentityService.Application.Common.Models;
 using IdentityService.Application.Features.Users.DTOs;
@@ -16,6 +17,7 @@ namespace IdentityService.Application.Features.Users.Services
         private readonly IValidator<CreateUserRequest> _createValidator;
         private readonly IValidator<UpdateUserRequest> _updateValidator;
         private readonly ILogger<UserService> _logger;
+        private readonly IPasswordHasher _passwordHasher;
 
 
         public UserService(
@@ -23,13 +25,15 @@ namespace IdentityService.Application.Features.Users.Services
             IValidator<UserQueryRequest> queryValidator,
             IValidator<CreateUserRequest> createValidator,
             IValidator<UpdateUserRequest> updateValidator,
-            ILogger<UserService> logger)
+            ILogger<UserService> logger,
+            IPasswordHasher passwordHasher)
         {
             _userRepository = userRepository;
             _queryValidator = queryValidator;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _logger = logger;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
@@ -63,6 +67,10 @@ namespace IdentityService.Application.Features.Users.Services
                 displayName,
                 emailAddress,
                 departmentCode);
+
+            var hashPassword = _passwordHasher.Hash(request.Password);
+
+            user.SetPasswordHash(hashPassword);
 
             _logger.LogInformation("กำลังสร้างผู้ใช้งาน Username: {Username}, DepartmentCode: {DepartmentCode}",username, departmentCode);
             var createdUser = await _userRepository.AddAsync(user, cancellationToken);

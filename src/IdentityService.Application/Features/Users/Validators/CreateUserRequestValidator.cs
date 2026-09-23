@@ -31,6 +31,11 @@ namespace IdentityService.Application.Features.Users.Validators
                 .MaximumLength(50)
                 .WithMessage("รหัสแผนกต้องมีความยาวไม่เกิน 50 ตัวอักษร")
                 .When(x => !string.IsNullOrWhiteSpace(x.DepartmentCode));
+
+            RuleFor(x => x.Password.Count())
+                .InclusiveBetween(3,20)
+                .WithMessage("รหัสผ่านต้องมีความยาวระหว่าง 3-20 ตัวอักษร")
+                .When(x => x.Password.Count() < 3 || x.Password.Count() > 20);
         }
     }
 }

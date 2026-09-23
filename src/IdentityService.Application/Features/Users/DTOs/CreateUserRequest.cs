@@ -8,6 +8,8 @@
 
         public string EmailAddress { get; init; } = string.Empty;
 
+        public string Password {  get; init; } = string.Empty;
+
         public string? DepartmentCode { get; init; }
     }
 }
